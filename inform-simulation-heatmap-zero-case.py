@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Jan 22 15:24:39 2026
+
+@author: jjohnson16
+"""
+
+# -*- coding: utf-8 -*-
+"""
 This code is to numerically
 """
 
@@ -103,17 +110,20 @@ dkp = 1
 kpmax =1
 lam =1
 kQ =2
-m =10
+m =100
 
 maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
-kas = np.linspace(1,max(maxka),n)
+midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qfs**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
 
-#y0 = np.append(0.1*np.ones(round(m/2)),2*np.ones(round(m/2)))
-y0 = 1*np.random.random(m)+3
+kas = np.linspace(1,max(midka)*1.1,n)
+
+
+
+y0 = 0.001*np.random.random(m)+0
 t0 = 0
 T = 10
 h0 = 0.01
-tol = 0.0001
+tol = 0.001
 
 start = time.time()
 for i in range(len(Qfs)):
@@ -131,7 +141,7 @@ print(end-start)
 
 plt.figure(1)
 plt.imshow(maxad.T, extent=[min(Qfs), max(Qfs), min(kas), max(kas)],origin='lower')
-plt.plot(Qfs,maxka,'r--')
+plt.plot(Qfs,midka,'r--')
 plt.xlabel('Zero Price Demand  $Q_{free}$')
 plt.ylabel('Marginal Advertising Cost $k_a$')
 plt.show()

@@ -1,5 +1,12 @@
 # -*- coding: utf-8 -*-
 """
+Created on Thu Jan 22 13:54:10 2026
+
+@author: jjohnson16
+"""
+
+# -*- coding: utf-8 -*-
+"""
 This code is to numerically
 """
 
@@ -76,7 +83,8 @@ def R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
     y1 = np.where(y1 < 0, 0, y1)
     y2 = np.where(y2 < 0, 0, y2)
     # Compare RK2 and RK3
-    if np.abs(np.sum(y1-y2)**2) < tol:
+    #if np.abs(np.sum(y1-y2)**2) < tol:
+    if np.linalg.norm((y1-y2),ord=np.inf)< tol:    
       # increment time by h if below tolerance
       t = np.append(t,t0+h)
 
@@ -94,44 +102,37 @@ def R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
 
 
 
-n = 100
-Qfs = np.linspace(5,10,n)
 
 
-maxad = np.zeros([n,n])
 dkp = 1
 kpmax =1
 lam =1
 kQ =2
-m =10
+Qf = 10
+m =20
+#x = 0.4
+maxka = -dkp*(kpmax**2*kQ**2-Qf**2)/(8*kpmax**2*lam)*(m-1)/m
+#ka = maxka*0.99
+ka = 1
+midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qf**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
 
-maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
-kas = np.linspace(1,max(maxka),n)
-
-#y0 = np.append(0.1*np.ones(round(m/2)),2*np.ones(round(m/2)))
 y0 = 1*np.random.random(m)+3
+#y0 = np.append(0.1*np.ones(round(m*x)),(lam/x)*np.ones(round(m*(1-x))))+0.001*np.random.random(m)
+
 t0 = 0
-T = 10
+T = 20
 h0 = 0.01
-tol = 0.0001
+tol = 0.01
 
 start = time.time()
-for i in range(len(Qfs)):
-  Qf = Qfs[i]
 
-  for j in range(len(kas)):
+[t1,y1] = R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka)
 
-    ka = kas[j]
-    [t1,y1] = R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka)
-    maxad[i,j] = max(y1[-1,:])
-    print((i)*n+j+1)
+endx = np.sum(y1[-1,:]<=np.mean(y1[-1,:]))/len(y1[-1,:])
 
 end = time.time()
 print(end-start)
 
 plt.figure(1)
-plt.imshow(maxad.T, extent=[min(Qfs), max(Qfs), min(kas), max(kas)],origin='lower')
-plt.plot(Qfs,maxka,'r--')
-plt.xlabel('Zero Price Demand  $Q_{free}$')
-plt.ylabel('Marginal Advertising Cost $k_a$')
+plt.plot(t1,y1)
 plt.show()
