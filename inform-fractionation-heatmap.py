@@ -185,6 +185,7 @@ m =100
 Qfs =10
 maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
 midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qfs**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
+minka = -dkp*((dkp+kpmax)**2*kQ**2-Qfs**2)/(8*lam)/(dkp+kpmax)**2*(m-1)/m
 l = 50
 kas = np.linspace(1,midka*1.1,l)
 endx  = np.zeros([n,l])
@@ -232,6 +233,15 @@ plt.show()
 plt.figure(3)
 plt.imshow(endxtrue, extent=[min(kas), max(kas), min(xs), max(xs)],origin='lower', interpolation='nearest', aspect='auto')
 plt.plot(np.array([midka, midka]), np.array([xs[0], xs[-1]]),'r--')
+plt.ylabel('Initial Fractionation $x$')
+plt.xlabel('Marginal Advertising Cost $k_a$')
+plt.show()
+
+
+plt.figure(4)
+plt.imshow(endxtrue, extent=[min(kas), max(kas), min(xs), max(xs)],origin='lower', interpolation='nearest', aspect='auto')
+plt.plot(np.array([midka, midka]), np.array([xs[0], xs[-1]]),'r--')
+plt.plot(np.array([minka, minka]), np.array([xs[0], xs[-1]]),'b--')
 plt.ylabel('Initial Fractionation $x$')
 plt.xlabel('Marginal Advertising Cost $k_a$')
 plt.show()
