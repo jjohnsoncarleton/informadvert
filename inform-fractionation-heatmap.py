@@ -12,7 +12,7 @@ This code is to numerically
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
+#from scipy.integrate import solve_ivp
 import time
 
 
@@ -43,10 +43,6 @@ def dadt(t,a,dkp,kpmax,kQ,Qf,lam,ka):
   #for i in range(len(a)):
   #  dadt[i] = MB(dkp,kpmax,kQ,Qf,a,a[i],lam) -ka
   dadt =  MB(dkp,kpmax,kQ,Qf,a,a,lam) -ka
-  # Number of companies
-  N = len(a)
-  # Average Adverising
-  adavg = np.sum(a)/N
   #print
   dadt = np.where(np.logical_and(a<=0, dadt<= 0), 0, dadt)
   #dadt = [0 if (a[i] <= 0 and dadt[i] <= 0) else dadt[i]  for i  in range(len(dadt)) ]
@@ -140,66 +136,79 @@ def R23adapt(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
 
 
 
-# =============================================================================
-# maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
-# midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qfs**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
-# kas = np.linspace(1,max(maxka),n)
-# =============================================================================
-
-#y0 = np.append(0.1*np.ones(round(m/2)),2*np.ones(round(m/2)))
-# =============================================================================
-# y0 = 1*np.random.random(m)+3
-# t0 = 0
-# T = 10
-# h0 = 0.01
-# tol = 0.0001
-# 
-# start = time.time()
-# for i in range(len(Qfs)):
-#   Qf = Qfs[i]
-# 
-#   for j in range(len(kas)):
-# 
-#     ka = kas[j]
-#     [t1,y1] = R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka)
-#     maxad[i,j] = max(y1[-1,:])
-#     fracx[i,j] = np.sum(y1[-1,:]<=np.mean(y1[-1,:]))/len(y1[-1,:])
-#     print((i)*n+j+1)
-# 
-# end = time.time()
-# print(end-start)
-# =============================================================================
-
-
-
-
-
+# Fraction/Proportion of Generic Companies (at the start)
 xs = np.arange(0.01,1,0.01)
 n = len(xs)
+
+
+
+######
+# Parameters of the simulaiton
+
+
 
 dkp = 1
 kpmax =1
 lam =1
 kQ =2
+# Number of firms
 m =100
 Qfs =10
-maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
-midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qfs**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
+l = 100
+
+
+# Threshold values of ka
+
+
+
+# Determines when we can have stable differentiated state with more than
+# 50 percent generic
 minka = -dkp*((dkp+kpmax)**2*kQ**2-Qfs**2)/(8*lam)/(dkp+kpmax)**2*(m-1)/m
-l = 50
-kas = np.linspace(1,midka*1.1,l)
+
+
+
+
+# Determines when the undifferentiated state is stable 
+midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qfs**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
+
+# Determines when differentiated state is possible!
+#maxka = -dkp*(kpmax**2*kQ**2-Qfs**2)/(8*kpmax**2*lam)*(m-1)/m
+
+# Set ka so that we see the important transitions
+kas = np.linspace(minka*0.9,midka*1.1,l)
+
+
+# Important parameter groupng
+K= kQ**2*dkp+8*kas*lam
+
+# Threshold for maximum stable fraction of generic firms
+xthresh = dkp/2/((dkp/K)**(1/2)*Qfs-kpmax)
+minthreshx= np.ones(len(kas))*0.5
+# Set to 0.99 for visual purposes (can't set x = 1)
+maxthreshx= np.ones(len(kas))*max(xs)
+truethreshx = np.maximum(np.minimum(maxthreshx,xthresh),minthreshx)
+
+# Create arrays tracking the final fraction of generic firms
+# AND where or not the final fraction agreed with the initial fraction
 endx  = np.zeros([n,l])
 endxtrue = np.zeros([n,l])
 
-#y0 = np.append(0.1*np.ones(round(m/2)),2*np.ones(round(m/2)))
-#y0 = 1*np.random.random(m)+3
 
+# Initial time
 t0 = 0
+# Final time
 T = 15
+
+# Initial time step (RK23 adapt its timestep for accuaracy)
 h0 = 0.01
+
+# Tolerance for the infinity norm in RK23
 tol = 0.01
 
+# For timing purposes, start the timer
 start = time.time()
+
+
 for i in range(n):
     y0 = np.append(0.1*np.ones(round(m*xs[i])),(lam/xs[i])*np.ones(round(m*(1-xs[i]))))+0.001*np.random.random(m)
     for j in range(l):
@@ -210,8 +219,9 @@ for i in range(n):
             endxtrue[i,j] = 1
         print(i*l+j+1)
 
-
+# End the timer
 end = time.time()
+# Print run time
 print(end-start)
 
 plt.figure(1)
@@ -230,6 +240,8 @@ plt.ylabel('Marginal Advertising Cost $k_a$')
 plt.colorbar()
 plt.show()
 
+
+
 plt.figure(3)
 plt.imshow(endxtrue, extent=[min(kas), max(kas), min(xs), max(xs)],origin='lower', interpolation='nearest', aspect='auto')
 plt.plot(np.array([midka, midka]), np.array([xs[0], xs[-1]]),'r--')
@@ -238,10 +250,19 @@ plt.xlabel('Marginal Advertising Cost $k_a$')
 plt.show()
 
 
-plt.figure(4)
+plotendx = plt.figure(4)
 plt.imshow(endxtrue, extent=[min(kas), max(kas), min(xs), max(xs)],origin='lower', interpolation='nearest', aspect='auto')
-plt.plot(np.array([midka, midka]), np.array([xs[0], xs[-1]]),'r--')
-plt.plot(np.array([minka, minka]), np.array([xs[0], xs[-1]]),'b--')
+plt.plot(kas,truethreshx,'r',linewidth=3)
+plt.plot(np.array([midka, midka]), np.array([xs[0], xs[-1]]),'b--.',linewidth=3)
+plt.plot(np.array([minka, minka]), np.array([xs[0], xs[-1]]),'m:',linewidth=3)
 plt.ylabel('Initial Fractionation $x$')
 plt.xlabel('Marginal Advertising Cost $k_a$')
 plt.show()
+
+
+plotendx.savefig("End_Fractionation_Heatmap.pdf")
+plotendx.savefig("End_Fractionation_Heatmap.png")
+
+np.save("endfractionation.npy")
+
+

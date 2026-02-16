@@ -12,7 +12,6 @@ This code is to numerically
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.integrate import solve_ivp
 import time
 
 
@@ -43,10 +42,6 @@ def dadt(t,a,dkp,kpmax,kQ,Qf,lam,ka):
   #for i in range(len(a)):
   #  dadt[i] = MB(dkp,kpmax,kQ,Qf,a,a[i],lam) -ka
   dadt =  MB(dkp,kpmax,kQ,Qf,a,a,lam) -ka
-  # Number of companies
-  N = len(a)
-  # Average Adverising
-  adavg = np.sum(a)/N
   #print
   dadt = np.where(np.logical_and(a<=0, dadt<= 0), 0, dadt)
   #dadt = [0 if (a[i] <= 0 and dadt[i] <= 0) else dadt[i]  for i  in range(len(dadt)) ]
@@ -109,20 +104,42 @@ kpmax =1
 lam =1
 kQ =2
 Qf = 10
-m =20
-#x = 0.4
-maxka = -dkp*(kpmax**2*kQ**2-Qf**2)/(8*kpmax**2*lam)*(m-1)/m
-#ka = maxka*0.99
-ka = 1
+m =100
+
+# Determines when we can have stable differentiated state with more than
+# 50 percent generic
+minka = -dkp*((dkp+kpmax)**2*kQ**2-Qf**2)/(8*lam)/(dkp+kpmax)**2*(m-1)/m
+
+
+
+
+# Determines when the undifferentiated state is stable 
 midka = -dkp*((dkp+2*kpmax)**2*kQ**2-4*Qf**2)/(8*lam)/(dkp+2*kpmax)**2*(m-1)/m
 
-y0 = 1*np.random.random(m)+3
+ka = 4
+
+# Important parameter groupng
+K= kQ**2*dkp+8*ka*lam
+
+# Threshold for maximum stable fraction of generic firms
+xthresh = dkp/2/((dkp/K)**(1/2)*Qf-kpmax)
+minthreshx= 0.5
+# Set to 0.99 for visual purposes (can't set x = 1)
+maxthreshx= 0.99
+truethreshx = np.maximum(np.minimum(maxthreshx,xthresh),minthreshx)
+
+x = round(truethreshx-0.01,2)
+
+y0 = np.append(0.001*np.ones(round(m*x)),(lam/x)*np.ones(round(m*(1-x))))+0.01*np.random.random(m)
+
+
+#y0 = 1*np.random.random(m)+3
 #y0 = np.append(0.1*np.ones(round(m*x)),(lam/x)*np.ones(round(m*(1-x))))+0.001*np.random.random(m)
 
 t0 = 0
-T = 20
+T = 10
 h0 = 0.01
-tol = 0.01
+tol = 0.005
 
 start = time.time()
 
@@ -133,6 +150,13 @@ endx = np.sum(y1[-1,:]<=np.mean(y1[-1,:]))/len(y1[-1,:])
 end = time.time()
 print(end-start)
 
+theoeq = np.ones(len(t1))*lam/x
+endeq = np.ones(len(t1))*lam/endx
+
 plt.figure(1)
 plt.plot(t1,y1)
+plt.plot(t1,theoeq,'k--')
+plt.plot(t1,endeq,'r--')
+plt.xlabel('Time')
+plt.ylabel('Advertising')
 plt.show()
