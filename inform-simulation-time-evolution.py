@@ -128,9 +128,10 @@ minthreshx= 0.5
 maxthreshx= 0.99
 truethreshx = np.maximum(np.minimum(maxthreshx,xthresh),minthreshx)
 
-x = round(truethreshx-0.01,2)
+x = round(truethreshx+0.01,2)
 
 y0 = np.append(0.001*np.ones(round(m*x)),(lam/x)*np.ones(round(m*(1-x))))+0.01*np.random.random(m)
+#y0 = np.append(0.001*np.ones(round(m*x)),(lam/x)*np.ones(round(m*(1-x))) + np.random.uniform(0,0.1,round(m*(1-x))))
 
 
 #y0 = 1*np.random.random(m)+3

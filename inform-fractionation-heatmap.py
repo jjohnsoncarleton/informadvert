@@ -15,7 +15,8 @@ import matplotlib.pyplot as plt
 #from scipy.integrate import solve_ivp
 import time
 
-
+####### 
+# Fuctions 
 
 # This is the piecewise function for the marginal benefit function
 def MB(dkp,kpmax,kQ,Qf,a,ai,lam):
@@ -38,16 +39,14 @@ def MB(dkp,kpmax,kQ,Qf,a,ai,lam):
 
   return val
 
+# This gives that set of differntial equations for the differential equation
 def dadt(t,a,dkp,kpmax,kQ,Qf,lam,ka):
+  
+  # Set the array up for the dadt  
   dadt = np.zeros(len(a))
-  #for i in range(len(a)):
-  #  dadt[i] = MB(dkp,kpmax,kQ,Qf,a,a[i],lam) -ka
   dadt =  MB(dkp,kpmax,kQ,Qf,a,a,lam) -ka
-  #print
+  # Control for the case where
   dadt = np.where(np.logical_and(a<=0, dadt<= 0), 0, dadt)
-  #dadt = [0 if (a[i] <= 0 and dadt[i] <= 0) else dadt[i]  for i  in range(len(dadt)) ]
-  #dadt = np.where(np.logical_and(a<0, dadt < 0), ka, dadt)
-
   return dadt
 
 
@@ -98,44 +97,6 @@ def R23(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
   return [t,y]
 
 
-def R23adapt(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
-  # Time array
-  t = np.array([t0])
-  # Y value array
-  y = np.array([y0])
-  # Step size
-  h = h0
-  # Run until time  hits T
-  while  t[-1] < T:
-    # If the time step would hop past desired time adjust
-    # time step to exactly hit T
-    #print(t[-1] + h )
-    if t[-1] + h > T:
-      h = T - t[-1]
-    # First slope
-    f1 = dadt(t[-1],y[-1],dkp,kpmax,kQ,Qf,lam,ka)
-    # Second slope
-    f2 = dadt(t[-1]+h,y[-1]+h*f1,dkp,kpmax,kQ,Qf,lam,ka)
-    # Third slope
-    f3 = dadt(t[-1]+h/2,y[-1]+h*(f1+f2)/4,dkp,kpmax,kQ,Qf,lam,ka)
-    # RK2 step
-    y1 = y[-1] + h *(f1+f2)/2
-    # RK3 Step
-    y2 = y[-1] + h *(f1+f2+4*f3)/6
-
-    y1 = np.where(y1 < 0, 0, y1)
-    y2 = np.where(y2 < 0, 0, y2)
-    
-    lte = y2-y1
-    t = np.append(t,t0+h)
-    y = np.vstack((y,y2))
-    t0 =t[-1]
-    h = h*abs(tol/lte)**(1/3)
-    
-  return [t,y]
-
-
-
 # Fraction/Proportion of Generic Companies (at the start)
 xs = np.arange(0.01,1,0.01)
 n = len(xs)
@@ -144,7 +105,6 @@ n = len(xs)
 
 ######
 # Parameters of the simulaiton
-
 
 
 dkp = 1
@@ -157,15 +117,13 @@ Qfs =10
 l = 100
 
 
+##### T
 # Threshold values of ka
-
 
 
 # Determines when we can have stable differentiated state with more than
 # 50 percent generic
 minka = -dkp*((dkp+kpmax)**2*kQ**2-Qfs**2)/(8*lam)/(dkp+kpmax)**2*(m-1)/m
-
-
 
 
 # Determines when the undifferentiated state is stable 

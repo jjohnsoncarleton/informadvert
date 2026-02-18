@@ -7,7 +7,8 @@ Created on Thu Jan 22 15:24:39 2026
 
 # -*- coding: utf-8 -*-
 """
-This code is to numerically
+This code is to numerically test the threshold for the stabililty/existence of the
+undifferentiated state.
 """
 
 import numpy as np
