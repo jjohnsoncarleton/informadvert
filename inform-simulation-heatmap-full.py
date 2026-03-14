@@ -156,8 +156,8 @@ def R45(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
       #
       t0 =t[-1]
       h = 2*h
-      if h> 1/16:
-          h=1/16
+      if h> 1/2:
+          h=1/2
     else:
       # Adjust step size (larger if under tol and smaller if over tol)
       h = h/2
@@ -171,7 +171,7 @@ def R45(t0,T,h0,y0,tol,dkp,kpmax,Qf,lam,ka):
 ######
 # Parameters of the simulaiton
 
-n = 20
+n = 100
 Qfs = np.linspace(5,10,n)
 
 dkp = 1
@@ -181,7 +181,7 @@ kQ =2
 # Number of firms
 m = 100
 #Qfs =10
-l = 20
+l = 100
 
 # Threshold values of ka
 
@@ -220,7 +220,7 @@ T = 10
 h0 = 0.01
 
 # Tolerance for the infinity norm in RK23
-tol = 0.001
+tol = 0.01
 
 # For timing purposes, start the timer
 start = time.time()
@@ -244,8 +244,8 @@ for i in range(n):
         ka = midkas[j]
         ka2 =maxkas[j]
         # The Zero case
-        [t1,y1] = R45(t0,T,h0,y01,tol,dkp,kpmax,Qf,lam,ka)
-        [t2,y2] = R45(t0,T,h0,y02,tol,dkp,kpmax,Qf,lam,ka2)
+        [t1,y1] = R23(t0,T,h0,y01,tol,dkp,kpmax,Qf,lam,ka)
+        [t2,y2] = R23(t0,T,h0,y02,tol,dkp,kpmax,Qf,lam,ka2)
         maxadundiff[i,j] = max(y1[-1,:])
         maxaddiff[i,j] = max(y2[-1,:])
         print(i*l+j+1)
@@ -276,8 +276,7 @@ plt.show()
 
 
 
-#plotendx.savefig("End_Fractionation_Heatmap.pdf")
-#plotendx.savefig("End_Fractionation_Heatmap.png")
+
 
 #np.save("endfractionation.npy")
 
@@ -299,3 +298,10 @@ ax.set_ylabel('Marginal Advertising Cost $k_a$')
 ax.yaxis.label.set_position((0.5, 1))  # (x, y) coordinates
 fig.colorbar(im,ax=ax)
 plt.show()
+
+
+
+fig.savefig("Stacked_Heatmap.pdf")
+fig.savefig("Stacked_Heatmap.png")
+np.save("maxadundiff.npy",maxadundiff)
+np.save("maxaddiff.npy",maxaddiff)
